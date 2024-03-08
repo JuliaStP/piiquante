@@ -4,6 +4,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const stuffRoutes = require('./routes/stuff');
 const userRoutes = require('./routes/user');
@@ -29,6 +30,8 @@ mongoose.connect('mongodb+srv://andreevajulia:10Marina@clusterpiiquante.s8tanyd.
     next();
   });
 
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api', stuffRoutes);
 app.use('/api/auth', userRoutes);
 
