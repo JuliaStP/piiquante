@@ -120,36 +120,6 @@ exports.deleteThing = (req, res, next) => {
   );
 };
 
-// exports.deleteThing = (req, res, next) => {
-//   Thing.findOne({ _id: req.params.id }).then(
-//     (thing) => {
-//       if (!thing) {
-//         return res.status(404).json({
-//           error: new Error('Objet non trouvé !')
-//         });
-//       }
-//       if (thing.userId !== req.auth.userId) {
-//         return res.status(401).json({
-//           error: new Error('Requête non autorisée !')
-//         });
-//       }
-//       Thing.deleteOne({_id: req.params.id}).then(
-//         () => {
-//           res.status(200).json({
-//             message: 'Deleted!'
-//           });
-//         }
-//       ).catch(
-//         (error) => {
-//           res.status(400).json({
-//             error: error
-//           });
-//         }
-//       );
-//     }
-//   );
-// };
-
 exports.getAllStuff = (req, res, next) => {
   Thing.find().then(
     (things) => {
@@ -165,15 +135,54 @@ exports.getAllStuff = (req, res, next) => {
 };
 
 exports.likeThing = (req, res, next) => {
-  Thing.findByIdAndUpdate(req.body.id, {
-    // $push:{ likes:req.userId } 
-  }, {
-    new: true
-  }).exec((err, result) => {
-    if (err) {
-      return res.status(422).json({error:err})
-    } else {
-      res.json(result)
-    }
-  })
-}
+  if (req.body.like === 1) {
+    Thing.updateOne(
+      { _id: req.params.id },
+      {
+        $inc: { likes: req.body.like++ },
+        $push: { usersLiked: req.body.userId },
+      }
+    )
+
+      .then(() => res.status(200).json({ message: "+1 like !" }))
+      .catch((error) => res.status(400).json({ error }));
+  } else if (req.body.like === -1) {
+    Thing.updateOne(
+      { _id: req.params.id },
+      {
+        $inc: { dislikes: req.body.like++ * -1 },
+        $push: { usersDisliked: req.body.userId },
+      }
+    )
+
+      .then(() => res.status(200).json({ message: "+1 dislike !" }))
+      .catch((error) => res.status(400).json({ error }));
+  } else {
+    Thing.findOne({ _id: req.params.id })
+      .then((sauce) => {
+        if (sauce.usersLiked.includes(req.body.userId)) {
+          Thing.updateOne(
+            { _id: req.params.id },
+            {
+              $pull: { usersLiked: req.body.userId },
+              $inc: { likes: -1 },
+            }
+          )
+
+            .then(() => res.status(200).json({ message: "like -1 !" }))
+            .catch((error) => res.status(400).json({ error }));
+        } else if (sauce.usersDisliked.includes(req.body.userId)) {
+          Thing.updateOne(
+            { _id: req.params.id },
+            {
+              $pull: { usersDisliked: req.body.userId },
+              $inc: { dislikes: -1 },
+            }
+          )
+            .then(() => res.status(200).json({ message: "Dislike -1 !" }))
+            .catch((error) => res.status(400).json({ error }));
+        }
+      })
+      .catch((error) => res.status(400).json({ error }));
+  }
+};
