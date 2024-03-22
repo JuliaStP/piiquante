@@ -13,10 +13,10 @@ exports.createThing = (req, res, next) => {
     mainPepper: req.body.sauce.mainPepper,
     imageUrl: url + '/images/' + req.file.filename,
     heat: req.body.sauce.heat,
-    // likes: req.body.thing.likes,
-    // dislikes: req.body.thing.dislikes,
-    // usersLiked: req.body.thing.usersLiked,
-    // usersDisliked: req.body.thing.usersDisliked,
+    likes: 0,
+    dislikes: 0,
+    usersLiked: [],
+    usersDisliked: [],
   });
   thing.save().then(
     () => {
@@ -53,18 +53,18 @@ exports.modifyThing = (req, res, next) => {
   let thing = new Thing({ _id: req.params._id });
   if (req.file) {
     const url = req.protocol + '://' + req.get('host');
-    req.body.thing = JSON.parse(req.body.thing);
+    req.body.sauce = JSON.parse(req.body.sauce);
   thing = {
     _id: req.params.id,
-    name: req.body.thing.name,
-    manufacturer: req.body.thing.manufacturer,
-    description: req.body.thing.description,
-    mainPepper: req.body.thing.mainPepper,
+    name: req.body.sauce.name,
+    manufacturer: req.body.sauce.manufacturer,
+    description: req.body.sauce.description,
+    mainPepper: req.body.sauce.mainPepper,
     imageUrl: url + '/images/' + req.file.filename,
-    heat: req.body.thing.heat,
-    // likes: req.body.thing.likes,
+    heat: req.body.sauce.heat,
+    likes: req.body.sauce.likes,
     // dislikes: req.body.thing.dislikes,
-    // usersLiked: req.body.thing.usersLiked,
+    usersLiked: req.body.sauce.usersLiked,
     // usersDisliked: req.body.thing.usersDisliked,
   };
 } else {
@@ -76,9 +76,9 @@ exports.modifyThing = (req, res, next) => {
     mainPepper: req.body.mainPepper,
     imageUrl: req.body.imageUrl,
     heat: req.body.heat,
-    // likes: req.body.likes,
+    likes: req.body.likes,
     // dislikes: req.body.dislikes,
-    // usersLiked: req.body.usersLiked,
+    usersLiked: req.body.usersLiked,
     // usersDisliked: req.body.usersDisliked
   }
 }
@@ -166,7 +166,7 @@ exports.getAllStuff = (req, res, next) => {
 
 exports.likeThing = (req, res, next) => {
   Thing.findByIdAndUpdate(req.body.id, {
-    $push:{likes:req.user._id}
+    // $push:{ likes:req.userId } 
   }, {
     new: true
   }).exec((err, result) => {
